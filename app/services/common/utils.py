@@ -32,7 +32,7 @@ def send_otp_mail(otp, receiver):
     email.send()
 
 
-def randon_cargo_number(length=12):
+def randon_article_number(length=12):
     code = ''.join([str(random.randint(0, 9)) for _ in range(length)])
     return str(code)
 

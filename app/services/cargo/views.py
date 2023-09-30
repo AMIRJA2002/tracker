@@ -1,4 +1,4 @@
-from services.cargo.service import CargoQueries, CarrierQueries, OpenWeather
+from services.cargo.service import ArticleQueries, CarrierQueries, OpenWeather
 from services.cargo.models import Article, Carrier, ArticleInformation
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema
@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from django.shortcuts import Http404
 
 
-class CargoAPI(APIView):
+class ArticleAPI(APIView):
     permission_classes = (IsAuthenticated,)
 
     class InputSerializer(serializers.Serializer):
@@ -23,12 +23,12 @@ class CargoAPI(APIView):
     def post(self, request):
         data = self.InputSerializer(data=request.data)
         data.is_valid(raise_exception=True)
-        cargo = CargoQueries.create_one(user=request.user, data=data.validated_data)
-        return Response(self.OutputSerializer(cargo).data, status=status.HTTP_201_CREATED)
+        article = ArticleQueries.create_one(user=request.user, data=data.validated_data)
+        return Response(self.OutputSerializer(article).data, status=status.HTTP_201_CREATED)
 
     @extend_schema(responses=OutputSerializer)
     def get(self, request, pk=None):
-        query = CargoQueries.retrieve_one_or_list(user=request.user, pk=pk)
+        query = ArticleQueries.retrieve_one_or_list(user=request.user, pk=pk)
         if pk is not None:
             return Response(self.OutputSerializer(query).data, status=status.HTTP_200_OK)
         return Response(self.OutputSerializer(query, many=True).data, status=status.HTTP_200_OK)
@@ -55,7 +55,7 @@ class CarrierChangeLocationAPI(APIView):
         return Response(self.OutputSerializer(updated_location).data, status=status.HTTP_202_ACCEPTED)
 
 
-class TrackCargoAPI(APIView):
+class TrackArticleAPI(APIView):
     permission_classes = (IsAuthenticated,)
 
     class InputSerializer(serializers.Serializer):
@@ -83,13 +83,13 @@ class TrackCargoAPI(APIView):
         if not number and not carrier:  # check if carrier and number is None
             raise Http404('you must provide a number or carrier')
 
-        article = CargoQueries.get_cargo(user=request.user, number=number, carrier_name=carrier)
-        article_information = CargoQueries.get_cargo_information(cargo=article)
+        article = ArticleQueries.get_article(user=request.user, number=number, carrier_name=carrier)
+        article_information = ArticleQueries.get_article_information(article=article)
 
         if article.status == article.Type.Delivered:  # return all travel information is status is delivered
             article = self.ArticleSerializer(article).data
             location = self.ArticleInformationSerializer(article_information, many=True).data,
-            response = Response({'cargo': article, 'travel_information': location})
+            response = Response({'article': article, 'travel_information': location})
 
         elif article.status != article.Type.Delivered:  # return last travel information is status is not delivered
             location = article.carrier.current_location

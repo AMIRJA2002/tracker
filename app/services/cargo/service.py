@@ -1,4 +1,4 @@
-from services.common.utils import randon_cargo_number, call_open_whether
+from services.common.utils import randon_article_number, call_open_whether
 from services.cargo.models import Article, Carrier, ArticleInformation
 from django.shortcuts import get_object_or_404, Http404
 from django.contrib.auth import get_user_model
@@ -10,13 +10,13 @@ from typing import Dict
 User = get_user_model()
 
 
-class CargoQueries:
+class ArticleQueries:
 
     @staticmethod
     def create_one(user: User, data: Dict[str, str]) -> Article:
-        number = randon_cargo_number()
-        cargo = Article.objects.create(owner=user, name_of_cargo=data['name_of_article'], number=number)
-        return cargo
+        number = randon_article_number()
+        article = Article.objects.create(owner=user, name_of_article=data['name_of_article'], number=number)
+        return article
 
     @staticmethod
     def retrieve_one_or_list(user: User, pk: str | None) -> QuerySet[Article] | Article:
@@ -25,19 +25,19 @@ class CargoQueries:
         return Article.objects.filter(owner=user)
 
     @staticmethod
-    def get_cargo(user: User, number: int | None, carrier_name: str | None) -> Article:
+    def get_article(user: User, number: int | None, carrier_name: str | None) -> Article:
         try:
             return get_object_or_404(Article, owner=user, number=number)
         except:
             return get_object_or_404(Article, owner=user, carrier__fullname=carrier_name)
 
     @staticmethod
-    def get_cargo_information(cargo: Article) -> QuerySet[ArticleInformation]:
-        return cargo.article_location.all()
+    def get_article_information(article: Article) -> QuerySet[ArticleInformation]:
+        return article.article_location.all()
 
     @staticmethod
-    def get_cargo_last_information(cargo: Article) -> ArticleInformation:
-        return cargo.article_location.all().last()
+    def get_article_last_information(article: Article) -> ArticleInformation:
+        return article.article_location.all().last()
 
 
 class CarrierQueries:
@@ -50,20 +50,20 @@ class CarrierQueries:
     def update_location(cls, carrier: Carrier, location: str) -> Carrier:
         carrier.current_location = location
         carrier.save()
-        cls.update_carriers_cargos_location_information(carrier, location)
+        cls.update_carriers_articles_location_information(carrier, location)
         return carrier
 
     @classmethod
-    def update_carriers_cargos_location_information(cls, carrier: Carrier, location: str) -> None:
+    def update_carriers_articles_location_information(cls, carrier: Carrier, location: str) -> None:
         data = cls.call_open_weather_api(location)
         articles = carrier.article.filter(status='on the way')
 
-        cargo_info_list = []
+        article_info_list = []
         for article in articles:
-            cargo_info = ArticleInformation(location=location, article=article, whether_information=data)
-            cargo_info_list.append(cargo_info)
+            article_info = ArticleInformation(location=location, article=article, whether_information=data)
+            article_info_list.append(article_info)
 
-        ArticleInformation.objects.bulk_create(cargo_info_list)
+        ArticleInformation.objects.bulk_create(article_info_list)
 
     @classmethod
     def call_open_weather_api(cls, location):
