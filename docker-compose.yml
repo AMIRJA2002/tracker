@@ -1,0 +1,75 @@
+services:
+
+  app:
+    build: .
+    container_name: tracker_app
+    restart: always
+    tty: true
+    networks:
+      - main
+    expose:
+      - 8000
+    volumes:
+      - ./app:/code
+      - static_volume:/code/static
+      - media_volume:/code/media
+
+    depends_on:
+      - redis
+
+  nginx:
+    build: nginx/
+    container_name: tracker_nginx
+    restart: always
+    networks:
+      - main
+    ports:
+      - 80:80
+    volumes:
+      - static_volume:/code/static
+      - media_volume:/code/media
+
+  database:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    networks:
+      - main
+    ports:
+      - 5432:5432
+    env_file: ./app/tracker/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    networks:
+      - main
+    volumes:
+      - redis_data:/data
+    ports:
+      - 6379:6379
+
+  celery:
+    build: .
+    container_name: celery_tracker
+    command: celery -A tracker worker -l INFO
+    restart: always
+    networks:
+      - main
+    depends_on:
+      - app
+      - redis
+      - database
+
+
+volumes:
+  pgdata:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  main:
