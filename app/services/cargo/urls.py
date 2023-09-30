@@ -9,5 +9,3 @@ urlpatterns = [
     path('update/carrier/<int:pk>/', views.CarrierChangeLocationAPI.as_view(), name='update_carrier'),
     path('article/', views.TrackCargoAPI.as_view(), name='article_location'),
 ]
-
-

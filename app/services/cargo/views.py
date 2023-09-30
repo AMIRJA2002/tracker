@@ -35,6 +35,8 @@ class CargoAPI(APIView):
 
 
 class CarrierChangeLocationAPI(APIView):
+    permission_classes = (IsAuthenticated,)
+
 
     class InputSerializer(serializers.Serializer):
         location = serializers.CharField(max_length=200)
@@ -54,6 +56,8 @@ class CarrierChangeLocationAPI(APIView):
 
 
 class TrackCargoAPI(APIView):
+    permission_classes = (IsAuthenticated,)
+
     class InputSerializer(serializers.Serializer):
         number = serializers.IntegerField(required=False)
         carrier = serializers.CharField(required=False)
