@@ -7,7 +7,7 @@ cd app
 
 2- create your env
 ```
-cp .env.example .env
+cd tracker && cp .env.example .env
 
 create a database, user and password and write name of them in env file
 ```
