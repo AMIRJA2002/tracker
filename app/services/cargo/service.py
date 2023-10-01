@@ -127,3 +127,39 @@ class OpenWeather:
             return False
         else:
             return True
+
+
+class CreateTrackingDataForUser:
+    def __init__(self, user: User, number: int, carrier: str) -> None:
+        self.user = user
+        self.number = number
+        self.carrier = carrier
+
+    def get_article(self) -> Article:
+        return ArticleQueries.get_article(user=self.user, number=self.number, carrier_name=self.carrier)
+
+    def get_article_information(self) -> QuerySet[ArticleInformation]:
+        return ArticleQueries.get_article_information(article=self.get_article())
+
+    def check_article_status_and_send_data(self) -> Dict[str, any]:
+        article = self.get_article()
+        article_information = self.get_article_information()
+        if article.status == article.Type.Delivered:
+            return self.article_with_delivered_status(article=article, article_information=article_information)
+        else:
+            return self.article_with_on_the_way_status(article=article)
+
+    @classmethod
+    def article_with_delivered_status(cls, article: Article, article_information: QuerySet[ArticleInformation]) -> Dict[str, any]:
+        return {'article': article, 'travel_information': article_information}
+
+    def article_with_on_the_way_status(self, article: Article) -> Dict[str, any]:
+        data = self.call_open_weather(location=article.carrier.current_location)
+        return {'article': article, 'last_weather_information': data}
+
+    @classmethod
+    def call_open_weather(cls, location: str) -> Dict[str, any]:
+        open_weather = OpenWeather(str(location))
+        data = open_weather.get_weather_information()
+        data['city'] = location  # add name of coty to data
+        return data

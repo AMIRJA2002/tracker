@@ -1,4 +1,4 @@
-from services.cargo.service import ArticleQueries, CarrierQueries, OpenWeather
+from services.cargo.service import ArticleQueries, CarrierQueries, CreateTrackingDataForUser
 from services.cargo.models import Article, Carrier, ArticleInformation
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema
@@ -36,7 +36,6 @@ class ArticleAPI(APIView):
 
 class CarrierChangeLocationAPI(APIView):
     permission_classes = (IsAuthenticated,)
-
 
     class InputSerializer(serializers.Serializer):
         location = serializers.CharField(max_length=200)
@@ -83,20 +82,25 @@ class TrackArticleAPI(APIView):
         if not number and not carrier:  # check if carrier and number is None
             raise Http404('you must provide a number or carrier')
 
-        article = ArticleQueries.get_article(user=request.user, number=number, carrier_name=carrier)
-        article_information = ArticleQueries.get_article_information(article=article)
+        # call CreateTrackingDataForUser class for provide data for user
+        tracking_data_for_user = CreateTrackingDataForUser(user=request.user, number=number, carrier=carrier)
+        data = tracking_data_for_user.check_article_status_and_send_data()
 
-        if article.status == article.Type.Delivered:  # return all travel information is status is delivered
-            article = self.ArticleSerializer(article).data
-            location = self.ArticleInformationSerializer(article_information, many=True).data,
-            response = Response({'article': article, 'travel_information': location})
+        article_serializer = self.ArticleSerializer(data['article']).data
 
-        elif article.status != article.Type.Delivered:  # return last travel information is status is not delivered
-            location = article.carrier.current_location
-            article = self.ArticleSerializer(article).data
-            open_weather = OpenWeather(str(location))
-            data = open_weather.get_weather_information()
-            data['city'] = location
-            response = Response({'article': article, 'last_weather_information': data})
-
+        if data.get('last_weather_information'):
+            response = Response(
+                {
+                    'article': article_serializer,
+                    'last_weather_information': data['last_weather_information']
+                }
+            )
+        else:
+            article_information_serializer = self.ArticleInformationSerializer(data['travel_information'], many=True).data
+            response = Response(
+                {
+                    'article': article_serializer,
+                    'travel_information': article_information_serializer
+                }
+            )
         return response
