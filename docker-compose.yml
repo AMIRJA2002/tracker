@@ -40,6 +40,7 @@ services:
     env_file: ./app/tracker/.env
     volumes:
       - pgdata:/var/lib/postgresql/data/
+      - ./init-scripts:/docker-entrypoint-initdb.d
 
   redis:
     image: redis:latest
