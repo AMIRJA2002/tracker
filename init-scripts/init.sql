@@ -1,8 +1,8 @@
 -- init.sql
-CREATE DATABASE mydb;
-CREATE USER myuser WITH PASSWORD 'mypassword';
-ALTER ROLE myuser SET client_encoding TO 'utf8';
-ALTER ROLE myuser SET default_transaction_isolation TO 'read committed';
-ALTER ROLE myuser SET timezone TO 'UTC';
-GRANT ALL PRIVILEGES ON DATABASE mydb TO myuser;
+CREATE DATABASE tracker_db;
+CREATE USER tracker_user WITH PASSWORD 'tracker_pass' SUPERUSER; -- Add SUPERUSER privilege
+ALTER ROLE tracker_user SET client_encoding TO 'utf8';
+ALTER ROLE tracker_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE tracker_user SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE tracker_db TO tracker_user;
 
