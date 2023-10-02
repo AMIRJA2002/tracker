@@ -43,6 +43,7 @@ services:
       - POSTGRES_PASSWORD=postgres    
     volumes:
       - storedata:/var/lib/postgresql/data/
+      - ./init-scripts:/docker-entrypoint-initdb.d
 
   redis:
     image: redis:latest
