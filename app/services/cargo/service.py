@@ -10,6 +10,7 @@ from typing import Dict
 User = get_user_model()
 
 
+
 class ArticleQueries:
 
     @staticmethod
